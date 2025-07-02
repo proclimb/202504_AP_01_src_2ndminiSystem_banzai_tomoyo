@@ -5,7 +5,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!zip) {
             alert('郵便番号を入力してください');
             return;
+        } else if (zip.match(/^[0-9]{3}-[0-9]{4}$/) == null) {
+            alert('郵便番号が正しくありません（000-0000の形式で入力してください）');
         }
+        // else if (!/^\d{3}-\d{4}$/.test(document.zip.postal_code.value)) {
+        // errorElement(document.edit.postal_code, "郵便番号の形式が正しくありません（例: 123-4567）");
+        // flag = false;
 
         fetch('Searchaddress.php', {
             method: 'POST',
