@@ -5,7 +5,7 @@ class Validator
     private $error_message = [];
 
     // 呼び出し元で使う
-    public function validate($data)
+    public function validate($data, $files = [])
     {
         $this->error_message = [];
 
@@ -48,18 +48,44 @@ class Validator
 
 
         // 生年月日
-        if (empty($data['birth_year']) || empty($data['birth_month']) || empty($data['birth_day'])) {
-            $this->error_message['birth_date'] = '生年月日が入力されていません';
-        } elseif (!$this->isValidDate($data['birth_year'] ?? '', $data['birth_month'] ?? '', $data['birth_day'] ?? '')) {
-            $this->error_message['birth_date'] = '生年月日が正しくありません';
-            // 未来日のチェック
-        } else {
-            $input_date = sprintf('%04d-%02d-%02d', (int)$data['birth_year'], (int)$data['birth_month'], (int)$data['birth_day']);
-            $today = date('Y-m-d');
-            if ($input_date > $today) {
+        // input.phpのバリデーションチェック
+        if (
+            (!empty($data['birth_year']) || !empty($data['birth_month']) || !empty($data['birth_day']))
+        ) {
+            // 年月日がセットされている場合
+            if (empty($data['birth_year']) || empty($data['birth_month']) || empty($data['birth_day'])) {
+                $this->error_message['birth_date'] = '生年月日が入力されていません';
+            } elseif (!$this->isValidDate($data['birth_year'], $data['birth_month'], $data['birth_day'])) {
                 $this->error_message['birth_date'] = '生年月日が正しくありません';
+            } else {
+                //未来日のチェック
+                $input_date = sprintf('%04d-%02d-%02d', (int)$data['birth_year'], (int)$data['birth_month'], (int)$data['birth_day']);
+                $today = date('Y-m-d');
+                if ($input_date > $today) {
+                    $this->error_message['birth_date'] = '生年月日が正しくありません';
+                }
             }
+            // edit.phpのバリデーションチェック
+        } elseif (!empty($data['birth_date'])) {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birth_date'])) {
+                $this->error_message['birth_date'] = '生年月日の形式が正しくありません（例：1990-01-01）';
+            } else {
+                list($year, $month, $day) = explode('-', $data['birth_date']);
+                if (!$this->isValidDate($year, $month, $day)) {
+                    $this->error_message['birth_date'] = '生年月日が正しくありません';
+                } else {
+                    //未来日のチェック
+                    $today = date('Y-m-d');
+                    if ($data['birth_date'] > $today) {
+                        $this->error_message['birth_date'] = '生年月日が未来日になっています';
+                    }
+                }
+            }
+        } else {
+            // どちらも空の場合
+            $this->error_message['birth_date'] = '生年月日が入力されていません';
         }
+
 
 
         // 郵便番号

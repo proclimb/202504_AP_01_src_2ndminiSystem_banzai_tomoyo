@@ -25,6 +25,13 @@ require_once 'FileBlobHelper.php';
 
 // 2. 入力データ取得
 // 2-1. ユーザーデータ取得
+if (!isset($_SESSION['edit_data'])) {
+    // edit.phpからの遷移でなければ戻す（安全対策）
+    header('Location: edit.php');
+    exit();
+}
+
+$_POST = $_SESSION['edit_data']; // セッションから取得、なければPOSTから取得
 $id = $_POST['id'];
 $userData = [
     'name'         => $_POST['name'],
