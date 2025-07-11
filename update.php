@@ -60,31 +60,9 @@ try {
     // 4. 各テーブルのupdateメソッドを呼び出し
     $user->update($id, $userData);
 
-
+    // 5. 住所情報を更新
     $address = new UserAddress($pdo);
     $address->updateByUserId($addressData); // user_id付きのデータを渡す
-
-    // 6. ファイルアップロードを BLOB 化して取得（保存期限なし = null）
-    //    edit.php の <input type="file" name="document1"> / document2
-    $blobs = FileBlobHelper::getMultipleBlobs(
-        $_FILES['document1'] ?? null,
-        $_FILES['document2'] ?? null
-    );
-
-    // 7. BLOB が null でなければ（いずれかアップロードされたなら）user_documents に登録
-    if ($blobs !== null) {
-        // expires_at を NULL にして「保存期限なし」を実現
-        $expiresAt = null;
-
-        // User::saveDocument() を使って INSERT
-        // ※ メソッド定義では expires_at が nullable なので null を渡す
-        $user->saveDocument(
-            $id,
-            $blobs['front'],  // image(表)
-            $blobs['back'],   // image(裏)
-            $expiresAt
-        );
-    }
 
     // 8. トランザクションコミット
     $pdo->commit();

@@ -161,17 +161,42 @@ class Validator
             $this->error_message['email'] = '有効なメールアドレスを入力してください(半角で入力してください)';
         }
 
+        // ファイルのバリデーション
+        $this->validateFile('document1');
+        $this->validateFile('document2');
+
         return empty($this->error_message);
     }
 
+    // validate() の外で定義！
+    private function validateFile($fieldName)
+    {
+        // ファイルが未送信、選択されてない場合処理をスキップする（任意項目の場合はスルー）
+        if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] === UPLOAD_ERR_NO_FILE) {
+            return;
+        }
 
-    // エラーメッセージ取得
+        $file = $_FILES[$fieldName]; // ファイル情報を取得
+        //ファイルのアップロードの失敗した場合
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $this->error_message[$fieldName] = 'ファイルアップロード中にエラーが発生しました。';
+            return;
+        }
+        // アップロードされたファイルの形式が image/png または image/jpeg でない場合
+        $allowedTypes = ['image/png', 'image/jpeg'];
+        if (!in_array($file['type'], $allowedTypes, true)) {
+            $this->error_message[$fieldName] = 'ファイル形式はPNGまたはJPEGのみ許可されています';
+            return;
+        }
+    }
+
+    // エラーメッセージを取得
     public function getErrors()
     {
         return $this->error_message;
     }
 
-    // 生年月日の日付整合性チェック
+    // 生年月日の妥当性チェック
     private function isValidDate($year, $month, $day)
     {
         return checkdate((int)$month, (int)$day, (int)$year);

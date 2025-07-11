@@ -4,6 +4,13 @@
  * 更新・削除画面
  *
  * ** 更新・削除画面は、ダッシュボード、更新・削除確認の2画面から遷移してきます
+ * **   そのため、登録の時とは違い、セッションを使用しないパターンのプログラムになります
+ * **
+ * ** 各画面毎の処理は以下です
+ * ** 1.DB接続情報、クラス定義をそれぞれのファイルから読み込む
+ * ** 2.DBからユーザ情報を取得する為、$_GETからID情報を取得する
+ * ** 3.ユーザ情報を取得する
+ * **   1.Userクラスをインスタスタンス化する
  * * **
  * ** 【説明】
  * **   更新・削除では、入力チェックと画面遷移をjavascriptで行います
@@ -23,6 +30,7 @@
 require_once 'Db.php';
 require_once 'User.php';
 require_once 'Validator.php';
+require_once 'FileBlobHelper.php';
 
 session_cache_limiter('none');
 session_start();
@@ -37,9 +45,33 @@ $defaultData = $user->findById($id);
 $old = $_POST ?: $defaultData;
 
 if (!empty($_POST)) {
+
     $validator = new Validator();
 
-    if ($validator->validate($_POST)) {
+    if ($validator->validate($_POST, $_FILES)) {
+
+        // 6. ファイルアップロードを BLOB 化して取得（保存期限なし = null）
+        //    edit.php の <input type="file" name="document1"> / document2
+        $blobs = FileBlobHelper::getMultipleBlobs(
+            $_FILES['document1'] ?? null,
+            $_FILES['document2'] ?? null
+        );
+
+        // 7. BLOB が null でなければ（いずれかアップロードされたなら）user_documents に登録
+        if ($blobs !== null) {
+            // expires_at を NULL にして「保存期限なし」を実現
+            $expiresAt = null;
+
+            // User::saveDocument() を使って INSERT
+            // ※ メソッド定義では expires_at が nullable なので null を渡す
+            $user->saveDocument(
+                $id,
+                $blobs['front'],  // image(表)
+                $blobs['back'],   // image(裏)
+                $expiresAt
+            );
+        }
+
         $_SESSION['edit_data'] = $_POST;
         header('Location:update.php');
         exit();
