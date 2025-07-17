@@ -48,44 +48,33 @@ class Validator
 
 
         // 生年月日
-        // input.phpのバリデーションチェック
         if (
+            // 年月日どれかが入力されている → 登録画面と判断
             (!empty($data['birth_year']) || !empty($data['birth_month']) || !empty($data['birth_day']))
         ) {
-            // 年月日がセットされている場合
+            // 年月日のどれかが欠けていたらエラー
             if (empty($data['birth_year']) || empty($data['birth_month']) || empty($data['birth_day'])) {
                 $this->error_message['birth_date'] = '生年月日が入力されていません';
+
+                // 不正な日付（例：2月30日など）
             } elseif (!$this->isValidDate($data['birth_year'], $data['birth_month'], $data['birth_day'])) {
                 $this->error_message['birth_date'] = '生年月日が正しくありません';
+
+                // 未来日チェック
             } else {
-                //未来日のチェック
                 $input_date = sprintf('%04d-%02d-%02d', (int)$data['birth_year'], (int)$data['birth_month'], (int)$data['birth_day']);
                 $today = date('Y-m-d');
                 if ($input_date > $today) {
                     $this->error_message['birth_date'] = '生年月日が正しくありません';
                 }
             }
-            // edit.phpのバリデーションチェック
         } elseif (!empty($data['birth_date'])) {
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birth_date'])) {
-                $this->error_message['birth_date'] = '生年月日の形式が正しくありません（例：1990-01-01）';
-            } else {
-                list($year, $month, $day) = explode('-', $data['birth_date']);
-                if (!$this->isValidDate($year, $month, $day)) {
-                    $this->error_message['birth_date'] = '生年月日が正しくありません';
-                } else {
-                    //未来日のチェック
-                    $today = date('Y-m-d');
-                    if ($data['birth_date'] > $today) {
-                        $this->error_message['birth_date'] = '生年月日が未来日になっています';
-                    }
-                }
-            }
+            // 更新画面 → birth_dateが空でなければOK（形式や日付の妥当性はチェックしない）
+
         } else {
-            // どちらも空の場合
+            // 年月日も birth_date も何も入力されていない → 完全に空
             $this->error_message['birth_date'] = '生年月日が入力されていません';
         }
-
 
 
         // 郵便番号

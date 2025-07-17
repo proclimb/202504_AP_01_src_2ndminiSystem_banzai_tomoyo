@@ -71,6 +71,7 @@ session_destroy();
     <title>mini System</title>
     <link rel="stylesheet" href="style_new.css">
     <script src="postalcodesearch.js"></script>
+    <script src="contact.js"></script>
 </head>
 
 <body>
@@ -89,6 +90,7 @@ session_destroy();
                     <label>お名前<span>必須</span></label>
                     <input
                         type="text"
+                        id="name"
                         name="name"
                         placeholder="例）山田太郎"
                         value="<?= htmlspecialchars($old['name']) ?>">
@@ -101,6 +103,7 @@ session_destroy();
                     <label>ふりがな<span>必須</span></label>
                     <input
                         type="text"
+                        id="kana"
                         name="kana"
                         placeholder="例）やまだたろう"
                         value="<?= htmlspecialchars($old['kana']) ?>">
@@ -138,7 +141,7 @@ session_destroy();
                     <label>生年月日<span>必須</span></label>
                     <!-- 年プルダウン -->
                     <div class="birth-selects">
-                        <select name="birth_year" class="form-control">
+                        <select name="birth_year" id="birth_year" class="form-control">
                             <option value="">年</option>
                             <?php
                             $currentYear = (int)date('Y');
@@ -152,7 +155,7 @@ session_destroy();
                         </select>
 
                         <!-- 月プルダウン -->
-                        <select name="birth_month" class="form-control">
+                        <select name="birth_month" id="birth_month" class="form-control">
                             <option value="">月</option>
                             <?php
                             for ($m = 1; $m <= 12; $m++) :
@@ -165,7 +168,7 @@ session_destroy();
                         </select>
 
                         <!-- 日プルダウン -->
-                        <select name="birth_day" class="form-control">
+                        <select name="birth_day" id="birth_day" class="form-control">
                             <option value="">日</option>
                             <?php
                             for ($d = 1; $d <= 31; $d++) :
@@ -218,6 +221,7 @@ session_destroy();
                     <input
                         type="text"
                         name="building"
+                        id="building"
                         placeholder="建物名・部屋番号  **省略可**"
                         value="<?= htmlspecialchars($old['building'] ?? '') ?>">
                     <?php if (isset($error_message['address'])) : ?>
@@ -230,6 +234,7 @@ session_destroy();
                     <input
                         type="text"
                         name="tel"
+                        id="tel"
                         placeholder="例）000-000-0000"
                         value="<?= htmlspecialchars($old['tel']) ?>">
                     <?php if (isset($error_message['tel'])) : ?>
@@ -242,6 +247,7 @@ session_destroy();
                     <input
                         type="text"
                         name="email"
+                        id="email"
                         placeholder="例）guest@example.com"
                         value="<?= htmlspecialchars($old['email']) ?>">
                     <?php if (isset($error_message['email'])) : ?>
