@@ -426,6 +426,7 @@ textarea+div {
     border-color: #fb9a93 !important;
 }
 
+
 /* 8636 */
 .error-msg {
     color: red;
@@ -435,6 +436,13 @@ textarea+div {
 .error-msg2 {
     color: red;
     margin-left: 166px;
+}
+
+.error-msg1 {
+    color: red;
+    display: block;
+    margin-left: 166px;
+    margin-top: 0;
 }
 
 .birth-selects {
@@ -691,9 +699,3 @@ input.readonly-field[type="text"] {
 /* -------------------------------------------------------------------
    ↑ ここまで変更・追加箇所
    ------------------------------------------------------------------- */
-.error-msg1 {
-    color: red;
-    display: block;
-    margin-left: 166px;
-    margin-top: 0;
-}

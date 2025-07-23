@@ -180,11 +180,13 @@ session_destroy();
                             <?php endfor ?>
                         </select>
                     </div>
-                    <div id="birth_date_error" class="error-msg1"></div>
-                    <?php if (isset($error_message['birth_date'])) : ?>
-                        <div class="error-msg2">
-                            <?= htmlspecialchars($error_message['birth_date']) ?></div>
-                    <?php endif ?>
+                    <div class="error-msg1" id="birth_date_error">
+
+                        <?php if (isset($error_message['birth_date'])) : ?>
+                            <!-- <div class="error-msg1" id="birth_date_error"> -->
+                            <!-- <?= htmlspecialchars($error_message['birth_date']) ?></div> -->
+                        <?php endif ?>
+                    </div>
                 </div>
                 <div>
                     <label>郵便番号<span>必須</span></label>
@@ -200,9 +202,9 @@ session_destroy();
                             class="postal-code-search"
                             id="searchAddressBtn">住所検索</button>
                     </div>
-                    <div id="postal_code_error" class="error-msg1"></div>
+
                     <?php if (isset($error_message['postal_code'])) : ?>
-                        <div class="error-msg2">
+                        <div class="error-msg1" id="postal_code_error">
                             <?= htmlspecialchars($error_message['postal_code']) ?></div>
                     <?php endif ?>
                 </div>
