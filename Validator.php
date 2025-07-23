@@ -84,7 +84,7 @@ class Validator
         } elseif (!preg_match('/-/', $data['postal_code'] ?? '')) {
             $this->error_message['postal_code'] = '郵便番号にはハイフン（-）を入力してください';
         } elseif (!preg_match('/^[0-9]{3}-[0-9]{4}$/', $data['postal_code'] ?? '')) {
-            $this->error_message['postal_code'] = '郵便番号が正しくありません(半角数字で入力してください)';
+            $this->error_message['postal_code'] = '郵便番号が正しくありません(半角英数字で入力してください)';
         }
 
 
@@ -112,9 +112,6 @@ class Validator
         } elseif (preg_match('/[^ぁ-んァ-ヶー一-龠々0-9\- 　]/u', $data['city_town'])) {
             $this->error_message['address'] = '不正な文字が含まれています(数字や記号は半角で入力してください)';
 
-            // 建物名：値が入力されている　かつ　先頭に半角または全角スペースがある場合
-        } elseif (!empty($data['building']) && preg_match('/^[\x20\x{3000}]/u', $data['building'])) {
-            $this->error_message['address'] = '先頭に不要なスペースがあります';
 
             // 建物名：値が入力されている　かつ　ひらがな・カタカナ・漢字・半角英数字・スペース・ハイフン許可、その他記号不可
         } elseif (!empty($data['building']) && preg_match('/[^ぁ-んァ-ヶー一-龠々0-9A-Za-z\- 　]/u', $data['building'])) {
@@ -168,7 +165,7 @@ class Validator
         $file = $_FILES[$fieldName]; // ファイル情報を取得
         //ファイルのアップロードの失敗した場合
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            $this->error_message[$fieldName] = 'ファイルアップロード中にエラーが発生しました。';
+            $this->error_message[$fieldName] = 'ファイルアップロード中にエラーが発生しました';
             return;
         }
         // アップロードされたファイルの形式が image/png または image/jpeg でない場合

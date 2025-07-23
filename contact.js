@@ -66,9 +66,10 @@ function validate() {
     const birthYear = document.getElementById('birth_year');
     const birthMonth = document.getElementById('birth_month');
     const birthDay = document.getElementById('birth_day');
+    const errorElem1 = document.getElementById('birth_date_error');
 
     // 年月日それぞれの入力欄が存在する場合
-    if (birthYear && birthMonth && birthDay) {
+    if (birthYear && birthMonth && birthDay && errorElem1) {
         // それぞれの入力欄にイベントリスナーを追加
         [birthYear, birthMonth, birthDay].forEach(elem => {
             elem.addEventListener('input', () => {
@@ -76,12 +77,10 @@ function validate() {
                 const y = birthYear.value;
                 const m = birthMonth.value;
                 const d = birthDay.value;
-                // エラーメッセージ表示用の要素を取得
-                const errorElem = ensureErrorElement(birthYear);
 
                 // 入力チェック
                 if (!y || !m || !d) {
-                    errorElem.textContent = '生年月日が入力されていません';
+                    errorElem1.textContent = '生年月日が入力されていません';
                     return;
                 }
 
@@ -98,37 +97,37 @@ function validate() {
                     date.getMonth() + 1 !== monthNum ||
                     date.getDate() !== dayNum
                 ) {
-                    errorElem.textContent = '生年月日が正しくありません';
+                    errorElem1.textContent = '生年月日が正しくありません';
                     return;
                 }
 
                 // 現在の日付を取得
                 const today = new Date();
                 if (date > today) {
-                    errorElem.textContent = '生年月日が正しくありません';
+                    errorElem1.textContent = '生年月日が正しくありません';
                     return;
                 }
 
-                errorElem.textContent = '';
+                errorElem1.textContent = '';
             });
         });
     }
 
     // 郵便番号
     const postalCode = document.getElementById('postal_code');
-    if (postalCode) {
+    const errorElem2 = document.getElementById('postal_code_error');
+    if (postalCode && errorElem2) {
         postalCode.addEventListener('input', () => {
             const val = postalCode.value;
-            const errorElem = ensureErrorElement(postalCode);
 
             if (!val.trim()) {
-                errorElem.textContent = '郵便番号が入力されていません';
+                errorElem2.textContent = '郵便番号が入力されていません';
             } else if (!/-/.test(val)) {
-                errorElem.textContent = '郵便番号にはハイフン（-）を入力してください';
+                errorElem2.textContent = '郵便番号にはハイフン（-）を入力してください';
             } else if (!/^\d{3}-\d{4}$/.test(val)) {
-                errorElem.textContent = '郵便番号が正しくありません(半角数字で入力してください)';
+                errorElem2.textContent = '郵便番号が正しくありません(半角数字で入力してください)';
             } else {
-                errorElem.textContent = '';
+                errorElem2.textContent = '';
             }
         });
     }

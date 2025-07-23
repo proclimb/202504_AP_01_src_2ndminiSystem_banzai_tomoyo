@@ -183,6 +183,7 @@ if (!empty($_POST)) {
                             class="postal-code-search"
                             id="searchAddressBtn">住所検索</button>
                     </div>
+                    <div id="postal_code_error" class="error-msg1"></div>
                     <?php if (isset($error_message['postal_code'])) : ?>
                         <div class="error-msg">
                             <?= htmlspecialchars($error_message['postal_code']) ?></div>
