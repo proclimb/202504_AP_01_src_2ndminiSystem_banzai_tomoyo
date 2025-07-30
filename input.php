@@ -44,7 +44,7 @@ $old = $_POST ?? [];
 
 // 3.入力項目の入力チェック
 if (!empty($_POST) && empty($_SESSION['input_data'])) {
-    $validator = new Validator();
+    $validator = new Validator($pdo);
 
     if ($validator->validate($_POST)) {
         $_SESSION['input_data'] = $_POST;
@@ -202,11 +202,11 @@ session_destroy();
                             class="postal-code-search"
                             id="searchAddressBtn">住所検索</button>
                     </div>
-
                     <?php if (isset($error_message['postal_code'])) : ?>
                         <div class="error-msg1" id="postal_code_error">
                             <?= htmlspecialchars($error_message['postal_code']) ?></div>
-                    <?php endif ?>
+                    <?php else : ?>
+                        <div class="error-msg1" id="postal_code_error"></div> <?php endif ?>
                 </div>
                 <div>
                     <label>住所<span>必須</span></label>

@@ -1,8 +1,19 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 
 class Validator
 {
+    private $pdo;
     private $error_message = [];
+
+    public function __construct($pdo)
+    {
+        $this->pdo = $pdo;
+    }
+
 
     // 呼び出し元で使う
     public function validate($data, $files = [])
@@ -124,6 +135,22 @@ class Validator
             $this->error_message['address'] = '市区町村・番地もしくは建物名は50文字以内で入力してください';
         }
 
+        // 整合性チェック（郵便番号・都道府県・市区町村がDBにあるか）
+        // バリデーション内の該当箇所
+        if (
+            empty($this->error_message['postal_code']) &&
+            empty($this->error_message['address'])
+        ) {
+            $postal_code = $data['postal_code'] ?? '';
+            $prefecture = $data['prefecture'] ?? '';
+            $city_town = $data['city_town'] ?? '';
+
+            if (!$this->checkAddressConsistency($postal_code, $prefecture, $city_town)) {
+                $this->error_message['address_consistency'] = '郵便番号と住所の組み合わせが正しくありません';
+            }
+        }
+
+
 
         // 電話番号
         if (empty($data['tel'])) {
@@ -154,7 +181,30 @@ class Validator
         return empty($this->error_message);
     }
 
-    // validate() の外で定義！
+    private function checkAddressConsistency($postal_code, $prefecture, $city_town)
+    {
+        // 郵便番号のハイフンを除去して統一
+        $postal_code_normalized = str_replace('-', '', $postal_code);
+
+        // 住所の空白を除去して統一
+        $city_town_normalized = str_replace([' ', '　'], '', $city_town);
+
+        $sql = "SELECT COUNT(*) FROM address_master
+            WHERE REPLACE(postal_code, '-', '') = :postal_code
+              AND prefecture = :prefecture
+              AND REPLACE(CONCAT(city, town), ' ', '') = :city_town";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':postal_code' => $postal_code_normalized,
+            ':prefecture' => $prefecture,
+            ':city_town' => $city_town_normalized,
+        ]);
+
+        $count = $stmt->fetchColumn();
+        return $count > 0;
+    }
+
     private function validateFile($fieldName)
     {
         // ファイルが未送信、選択されてない場合処理をスキップする（任意項目の場合はスルー）

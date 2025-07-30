@@ -1,5 +1,10 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 /**
  * 更新・削除画面
  *
@@ -46,7 +51,8 @@ $old = $_POST ?: $defaultData;
 
 if (!empty($_POST)) {
 
-    $validator = new Validator();
+    $validator = new Validator($pdo);
+
 
     if ($validator->validate($_POST, $_FILES)) {
 
@@ -184,9 +190,10 @@ if (!empty($_POST)) {
                             id="searchAddressBtn">住所検索</button>
                     </div>
                     <?php if (isset($error_message['postal_code'])) : ?>
-                        <div class="error-msg1" id="">
+                        <div class="error-msg1" id="postal_code_error">
                             <?= htmlspecialchars($error_message['postal_code']) ?></div>
-                    <?php endif ?>
+                    <?php else : ?>
+                        <div class="error-msg1" id="postal_code_error"></div> <?php endif ?>
                 </div>
                 <div>
                     <label>住所<span>必須</span></label>
@@ -212,6 +219,11 @@ if (!empty($_POST)) {
                         <div class="error-msg">
                             <?= htmlspecialchars($error_message['address']) ?></div>
                     <?php endif ?>
+                    <?php if (isset($error_message['address_consistency'])) : ?>
+                        <div class="error-msg">
+                            <?= htmlspecialchars($error_message['address_consistency']) ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div>
                     <label>電話番号<span>必須</span></label>
