@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 
 class Validator
 {
@@ -29,9 +25,9 @@ class Validator
         } elseif (preg_match('/^[\x20\x{3000}]/u', $data['name'])) {
             $this->error_message['name'] = '先頭に不要なスペースがあります';
 
-            // ひらがな、カタカナ、漢字、スペース以外の文字が含まれている場合
-        } elseif (preg_match('/[^ぁ-んァ-ヶー一-龠々\s　]/u', $data['name'])) {
-            $this->error_message['name'] = 'ひらがな、カタカナ、漢字のみで入力してください';
+            // ひらがな、カタカナ、漢字、スペース以外の文字が含まれている場合（旧字体含む）
+        } elseif ($this->containsInvalidChars($data['name'], '/^[ぁ-んァ-ヶー一-龠々\s　]+$/u')) {
+            $this->error_message['name'] = '名前に利用できない文字が含まれています';
 
             // 名前の長さが20文字を超える場合
         } elseif (mb_strlen($data['name']) > 20) {
@@ -119,13 +115,15 @@ class Validator
         } elseif (preg_match('/^[\x20\x{3000}]/u', $data['city_town'])) {
             $this->error_message['address'] = '先頭に不要なスペースがあります';
 
-            // 市区町村：ひらがな・カタカナ・漢字・半角数字・スペース・ハイフン許可、その他記号不可
-        } elseif (preg_match('/[^ぁ-んァ-ヶー一-龠々0-9\- 　]/u', $data['city_town'])) {
+            // 市区町村：ひらがな・カタカナ・漢字・半角数字・スペース・ハイフン・旧字体許可、その他記号不可
+        } elseif ($this->containsInvalidChars($data['city_town'], '/[ぁ-んァ-ヶー一-龠々0-9\\- \\u3000]/u')) {
             $this->error_message['address'] = '不正な文字が含まれています(数字や記号は半角で入力してください)';
 
-
-            // 建物名：値が入力されている　かつ　ひらがな・カタカナ・漢字・半角英数字・スペース・ハイフン許可、その他記号不可
-        } elseif (!empty($data['building']) && preg_match('/[^ぁ-んァ-ヶー一-龠々0-9A-Za-z\- 　]/u', $data['building'])) {
+            // 建物名：値が入力されている　かつ　ひらがな・カタカナ・漢字・半角英数字・スペース・ハイフン・旧字体許可、その他記号不可
+        } elseif (
+            !empty($data['building']) &&
+            $this->containsInvalidChars($data['building'], '/^[ぁ-んァ-ヶー一-龠々ー0-9A-Za-z\- 　]+$/u')
+        ) {
             $this->error_message['address'] = '不正な文字が含まれています(数字・アルファベット・記号は半角で入力してください)';
 
             // 桁数のチェック
@@ -180,6 +178,27 @@ class Validator
 
         return empty($this->error_message);
     }
+
+    private function containsInvalidChars(string $value, string $pattern): bool
+    {
+        static $allowedOldChars = null;
+        if ($allowedOldChars === null) {
+            $allowedOldChars = require __DIR__ . '/AllowedOldChars.php';
+        }
+
+        if (preg_match($pattern, $value)) {
+            return false; // 全体OK
+        }
+
+        $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($chars as $char) {
+            if (!preg_match($pattern, $char) && !in_array($char, $allowedOldChars, true)) {
+                return true; // NG文字あり
+            }
+        }
+        return false;
+    }
+
 
     private function checkAddressConsistency($postal_code, $prefecture, $city_town)
     {
