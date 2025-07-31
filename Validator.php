@@ -170,6 +170,8 @@ class Validator
             $this->error_message['email'] = 'メールアドレスが入力されていません';
         } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             $this->error_message['email'] = '有効なメールアドレスを入力してください(半角で入力してください)';
+        } elseif ($this->isEmailDuplicate($data['email'])) {
+            $this->error_message['email'] = 'このメールアドレスはすでに登録されています。';
         }
 
         // ファイルのバリデーション
@@ -223,6 +225,15 @@ class Validator
         $count = $stmt->fetchColumn();
         return $count > 0;
     }
+
+    private function isEmailDuplicate($email)
+    {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM user_base WHERE email = :email");
+        $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+
 
     private function validateFile($fieldName)
     {

@@ -13,7 +13,8 @@ class User
     // ユーザ登録
     public function create($data)
     {
-        $sql = "INSERT INTO
+        try {
+            $sql = "INSERT INTO
                     user_base (
                     name,
                     kana,
@@ -32,17 +33,24 @@ class User
                     :email,
                     now()
                     )";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([
-            ':name'         => $data['name'],
-            ':kana'         => $data['kana'],
-            ':gender_flag'  => $data['gender_flag'],
-            ':birth_date'   => $data['birth_date'],
-            ':tel'          => $data['tel'],
-            ':email'        => $data['email']
-        ]);
-        return $this->pdo->lastInsertId();
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                ':name'         => $data['name'],
+                ':kana'         => $data['kana'],
+                ':gender_flag'  => $data['gender_flag'],
+                ':birth_date'   => $data['birth_date'],
+                ':tel'          => $data['tel'],
+                ':email'        => $data['email']
+            ]);
+            return $this->pdo->lastInsertId();
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) { // 一意制約違反のエラーコード
+                throw new Exception("このメールアドレスはすでに登録されています。");
+            }
+            throw $e; // その他の例外はそのまま投げる
+        }
     }
+
 
     // ユーザ更新
     public function update($id, $data)

@@ -1,5 +1,8 @@
 <?php
 
+require_once 'User.php';
+require_once 'Db.php';
+
 /**
  * 確認画面
  *
@@ -28,6 +31,27 @@ if (!isset($_SESSION['input_data'])) {
 
 // 1-2.セッションから登録画面の入力情報を$_POSTへコピーする
 $_POST = $_SESSION['input_data'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $user = new User($pdo);
+        $id = $user->create($_SESSION['input_data']);
+        // 登録成功後
+        session_destroy(); // 登録成功したのでセッション削除
+        header('Location: complete.php');
+        exit;
+    } catch (PDOException $e) {
+        // ユニーク制約違反か判定（MySQLの場合コードは23000）
+        if ($e->getCode() === '23000') {
+            $_SESSION['error_message'] = 'このメールアドレスは既に使われています。';
+            header('Location: input.php');
+            exit;
+        } else {
+            throw $e;
+        }
+    }
+}
+
 
 // 2.セッションを破棄する
 session_destroy();
