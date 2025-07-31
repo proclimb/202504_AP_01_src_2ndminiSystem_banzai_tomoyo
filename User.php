@@ -317,32 +317,45 @@ class User
     // ユーザドキュメント処理
     public function saveDocument($id, $frontBlob, $backBlob, ?string $expiresAt)
     {
-        $sql = "INSERT INTO
-                    user_documents
-                        (
-                        user_id,
-                        front_image,
-                        back_image,
-                        expires_at,
-                        created_at)
-                VALUES(
-                    :user_id,
-                    :front_image,
-                    :back_image,
-                    :expires_at,
-                    NOW()
-                    )";
+        // 既存データがあるかチェック
+        $sql = "SELECT COUNT(*) FROM user_documents WHERE user_id = :user_id";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':user_id', $id, PDO::PARAM_INT);
-        $stmt->bindParam(':front_image', $frontBlob, PDO::PARAM_LOB);
-        $stmt->bindParam(':back_image',  $backBlob,  PDO::PARAM_LOB);
+        $stmt->execute([':user_id' => $id]);
+        $exists = $stmt->fetchColumn() > 0;
 
-        if ($expiresAt === null) {
-            $stmt->bindValue(':expires_at', null, PDO::PARAM_NULL);
+        if ($exists) {
+            // 更新処理
+            $sql = "UPDATE user_documents
+                SET front_image = :front_image,
+                    back_image = :back_image,
+                    expires_at = :expires_at,
+                    updated_at = NOW()
+                WHERE user_id = :user_id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindParam(':front_image', $frontBlob, PDO::PARAM_LOB);
+            $stmt->bindParam(':back_image', $backBlob, PDO::PARAM_LOB);
+            if ($expiresAt === null) {
+                $stmt->bindValue(':expires_at', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindValue(':expires_at', $expiresAt, PDO::PARAM_STR);
+            }
+            $stmt->bindParam(':user_id', $id, PDO::PARAM_INT);
+            return $stmt->execute();
         } else {
-            $stmt->bindValue(':expires_at', $expiresAt, PDO::PARAM_STR);
+            // 新規登録処理（INSERT）
+            $sql = "INSERT INTO user_documents
+                (user_id, front_image, back_image, expires_at, created_at)
+                VALUES (:user_id, :front_image, :back_image, :expires_at, NOW())";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindParam(':user_id', $id, PDO::PARAM_INT);
+            $stmt->bindParam(':front_image', $frontBlob, PDO::PARAM_LOB);
+            $stmt->bindParam(':back_image', $backBlob, PDO::PARAM_LOB);
+            if ($expiresAt === null) {
+                $stmt->bindValue(':expires_at', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindValue(':expires_at', $expiresAt, PDO::PARAM_STR);
+            }
+            return $stmt->execute();
         }
-
-        return $stmt->execute();
     }
 }

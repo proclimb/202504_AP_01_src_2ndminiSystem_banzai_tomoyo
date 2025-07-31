@@ -164,14 +164,13 @@ class Validator
             $this->error_message['tel'] = '電話番号は12~13桁の半角数字で正しく入力してください';
         }
 
-
         // メールアドレス
         if (empty($data['email'])) {
             $this->error_message['email'] = 'メールアドレスが入力されていません';
         } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             $this->error_message['email'] = '有効なメールアドレスを入力してください(半角で入力してください)';
-        } elseif ($this->isEmailDuplicate($data['email'])) {
-            $this->error_message['email'] = 'このメールアドレスはすでに登録されています。';
+        } elseif ($this->isEmailDuplicate($data['email'], $data['id'] ?? null)) {
+            $this->error_message['email'] = 'このメールアドレスはすでに使用されています。';
         }
 
         // ファイルのバリデーション
@@ -226,35 +225,47 @@ class Validator
         return $count > 0;
     }
 
-    private function isEmailDuplicate($email)
+    public function isEmailDuplicate($email, $userId = null)
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM user_base WHERE email = :email");
-        $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+        $sql = "SELECT COUNT(*) FROM user_base WHERE email = :email";
+        if ($userId !== null) {
+            $sql .= " AND id != :id"; // 自分以外のIDと比較
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':email', $email);
+        if ($userId !== null) {
+            $stmt->bindValue(':id', $userId);
+        }
         $stmt->execute();
+
         return $stmt->fetchColumn() > 0;
     }
 
-
     private function validateFile($fieldName)
     {
-        // ファイルが未送信、選択されてない場合処理をスキップする（任意項目の場合はスルー）
+        // ファイルが未送信、または未選択（任意項目ならスキップ）
         if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] === UPLOAD_ERR_NO_FILE) {
             return;
         }
 
-        $file = $_FILES[$fieldName]; // ファイル情報を取得
-        //ファイルのアップロードの失敗した場合
-        if ($file['error'] !== UPLOAD_ERR_OK) {
-            $this->error_message[$fieldName] = 'ファイルアップロード中にエラーが発生しました';
-            return;
-        }
-        // アップロードされたファイルの形式が image/png または image/jpeg でない場合
+        $file = $_FILES[$fieldName];
+
+        // 許可するMIMEタイプ
         $allowedTypes = ['image/png', 'image/jpeg'];
         if (!in_array($file['type'], $allowedTypes, true)) {
             $this->error_message[$fieldName] = 'ファイル形式はPNGまたはJPEGのみ許可されています';
             return;
         }
+
+        // ファイルサイズ上限（2MB）
+        $maxFileSize = 2 * 1024 * 1024; // 2MB
+        if ($file['size'] > $maxFileSize) {
+            $this->error_message[$fieldName] = 'ファイルサイズは2MB以下にしてください';
+            return;
+        }
     }
+
 
     // エラーメッセージを取得
     public function getErrors()
