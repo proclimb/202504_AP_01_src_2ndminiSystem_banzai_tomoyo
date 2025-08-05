@@ -15,7 +15,7 @@
 $host = 'localhost';
 $dbname = 'minisystem_relation';
 $user = 'root';
-$password = 'proclimb';
+$password = 'edix4614';
 $charset = 'utf8mb4';
 
 // 2.DSN（データべース名）

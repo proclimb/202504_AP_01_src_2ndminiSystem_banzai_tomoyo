@@ -233,6 +233,11 @@ session_destroy();
                         <div class="error-msg">
                             <?= htmlspecialchars($error_message['address']) ?></div>
                     <?php endif ?>
+                    <?php if (isset($error_message['address_consistency'])) : ?>
+                        <div class="error-msg">
+                            <?= htmlspecialchars($error_message['address_consistency']) ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div>
                     <label>電話番号<span>必須</span></label>

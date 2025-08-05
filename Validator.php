@@ -174,8 +174,9 @@ class Validator
         }
 
         // ファイルのバリデーション
-        $this->validateFile('document1');
-        $this->validateFile('document2');
+        $this->validateFile($files['document1'] ?? null, 'document1');
+        $this->validateFile($files['document2'] ?? null, 'document2');
+
 
         return empty($this->error_message);
     }
@@ -187,18 +188,17 @@ class Validator
             $allowedOldChars = require __DIR__ . '/AllowedOldChars.php';
         }
 
-        if (preg_match($pattern, $value)) {
-            return false; // 全体OK
-        }
-
         $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+
         foreach ($chars as $char) {
             if (!preg_match($pattern, $char) && !in_array($char, $allowedOldChars, true)) {
                 return true; // NG文字あり
             }
         }
-        return false;
+
+        return false; // 全部OK
     }
+
 
 
     private function checkAddressConsistency($postal_code, $prefecture, $city_town)
@@ -242,14 +242,13 @@ class Validator
         return $stmt->fetchColumn() > 0;
     }
 
-    private function validateFile($fieldName)
+    // クラス内メソッド（validateFile）
+    private function validateFile($file, $fieldName)
     {
         // ファイルが未送信、または未選択（任意項目ならスキップ）
-        if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] === UPLOAD_ERR_NO_FILE) {
+        if ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
             return;
         }
-
-        $file = $_FILES[$fieldName];
 
         // 許可するMIMEタイプ
         $allowedTypes = ['image/png', 'image/jpeg'];
@@ -259,12 +258,13 @@ class Validator
         }
 
         // ファイルサイズ上限（2MB）
-        $maxFileSize = 2 * 1024 * 1024; // 2MB
+        $maxFileSize = 2 * 1024 * 1024;
         if ($file['size'] > $maxFileSize) {
             $this->error_message[$fieldName] = 'ファイルサイズは2MB以下にしてください';
             return;
         }
     }
+
 
 
     // エラーメッセージを取得
