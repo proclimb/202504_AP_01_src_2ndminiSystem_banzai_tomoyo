@@ -181,16 +181,23 @@ class Validator
         return empty($this->error_message);
     }
 
+
+    // 旧字体のチェック
     private function containsInvalidChars(string $value, string $pattern): bool
     {
+        // static変数を使用して、AllowedOldChars.phpの読み込みを1回だけにする
+        // 1回のリクエストで何度も呼び出される可能性があるため、処理を最適化
         static $allowedOldChars = null;
         if ($allowedOldChars === null) {
             $allowedOldChars = require __DIR__ . '/AllowedOldChars.php';
         }
 
+        // AllowedOldCharsで取得した配列を1文字ずつ分解
         $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
 
+        // 1文字ずつチェック
         foreach ($chars as $char) {
+            // 正規表現にマッチしない　かつ、　許可した旧字体にも含まれていない場合、
             if (!preg_match($pattern, $char) && !in_array($char, $allowedOldChars, true)) {
                 return true; // NG文字あり
             }
@@ -200,7 +207,7 @@ class Validator
     }
 
 
-
+    // 郵便番号と住所の整合性チェック
     private function checkAddressConsistency($postal_code, $prefecture, $city_town)
     {
         // 郵便番号のハイフンを除去して統一
@@ -209,11 +216,15 @@ class Validator
         // 住所の空白を除去して統一
         $city_town_normalized = str_replace([' ', '　'], '', $city_town);
 
-        $sql = "SELECT COUNT(*) FROM address_master
-            WHERE REPLACE(postal_code, '-', '') = :postal_code
+        $sql = "SELECT COUNT(*) FROM address_master WHERE
+        /* 郵便番号のハイフンを除去して比較 */
+        REPLACE(postal_code, '-', '') = :postal_code
+        /* 都道府県が一致するか */
               AND prefecture = :prefecture
+              /* city と town を結合してスペースを除去して比較 */
               AND REPLACE(CONCAT(city, town), ' ', '') = :city_town";
 
+        // SQL文を実行
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
             ':postal_code' => $postal_code_normalized,
@@ -221,32 +232,44 @@ class Validator
             ':city_town' => $city_town_normalized,
         ]);
 
+        // 検索結果を1件だけ取得
         $count = $stmt->fetchColumn();
+        // 1件以上あれば、郵便番号と住所の組み合わせは正しい
         return $count > 0;
     }
 
+    // メールアドレスの重複チェック
     public function isEmailDuplicate($email, $userId = null)
     {
+        // 入力したメールアドレスとデータベースのメールアドレスを比較(重複していないか)
         $sql = "SELECT COUNT(*) FROM user_base WHERE email = :email";
+        // userIdが指定されている場合は、
         if ($userId !== null) {
-            $sql .= " AND id != :id"; // 自分以外のIDと比較
+            // 自分以外のIDを対象にする (.= 結合演算子 WHERE句に条件を追加)
+            $sql .= " AND id != :id";
         }
 
+        // SQL文を実行
         $stmt = $this->pdo->prepare($sql);
+        // :emailに$emailをバインド(紐づけ)
         $stmt->bindValue(':email', $email);
         if ($userId !== null) {
+            // :idに$userIdをバインド(紐づけ)
             $stmt->bindValue(':id', $userId);
         }
         $stmt->execute();
 
+        // 検索結果を1件だけ取得
+        // 0件なら重複なし、1件以上なら重複あり
         return $stmt->fetchColumn() > 0;
     }
 
-    // クラス内メソッド（validateFile）
+    // ファイルのバリデーション
     private function validateFile($file, $fieldName)
     {
-        // ファイルが未送信、または未選択（任意項目ならスキップ）
+        // ファイルが未送信(未選択)の場合は　(UPLOAD_ERR_NO_FILEはファイルが送信されていない場合のエラーコード)
         if ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            // 処理をスキップ
             return;
         }
 

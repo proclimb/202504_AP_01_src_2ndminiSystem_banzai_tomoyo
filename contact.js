@@ -31,7 +31,7 @@ function validate() {
                 errorName.textContent = '名前が入力されていません';
             } else if (/^[\x20\u3000]/u.test(val)) {
                 errorName.textContent = '先頭に不要なスペースがあります';
-            } else if (/^[\p{Hiragana}\p{Katakana}\p{Han}\s　ー]+$/u.test(val)) {
+            } else if (/^[\u3040-\u30FF\u4E00-\u9FFF\s　ー]+$/.test(val)) {
                 errorName.textContent = 'ひらがな、カタカナ、漢字のみで入力してください';
             } else if (val.length > 20) {
                 errorName.textContent = '名前は20文字以内で入力してください';
@@ -164,7 +164,7 @@ function validate() {
                         errorMsg = '市区町村・番地が入力されていません';
                     } else if (/^[\x20\u3000]/.test(cityTown.value)) {
                         errorMsg = '市区町村・番地の先頭に不要なスペースがあります';
-                    } else if (/[^\p{Hiragana}\p{Katakana}\p{Han}0-9\- 　ー]/u.test(cityTown.value)) {
+                    } else if (/[^\u3040-\u30FF\u4E00-\u9FFF0-9\- 　ー]/.test(cityTown.value)) {
                         errorMsg = '市区町村・番地に不正な文字が含まれています（数字や記号は半角で入力してください）';
                     } else if (cityTown.value.length > 50) {
                         errorMsg = '市区町村・番地は50文字以内で入力してください';
@@ -173,8 +173,7 @@ function validate() {
                     else if (building.value) {
                         if (/^[\x20\u3000]/.test(building.value)) {
                             errorMsg = '建物名の先頭に不要なスペースがあります';
-                        } else if (/[^\p{Hiragana}\p{Katakana}\p{Han}0-9A-Za-z\- 　ー]/u
-                            .test(building.value)) {
+                        } else if (/[^\u3040-\u30FF\u4E00-\u9FFF0-9A-Za-z\- 　ー]/.test(building.value)) {
                             errorMsg = '建物名に不正な文字が含まれています（数字・アルファベット・記号は半角で入力してください）';
                         } else if (building.value.length > 50) {
                             errorMsg = '建物名は50文字以内で入力してください';
